@@ -1,0 +1,173 @@
+API bugs
+----------------------------------------------------------------------------------------------------
+
+Issue: Incorrect http status code for bad request of creating employee
+POST https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees
+{
+    "firstName": "New",
+    "lastName": "Employee2",
+    "dependants": null
+}
+Current behavior: returns 405
+Expected behavior: returns 400 with body including validation messages
+
+
+Issue: Incorrect http status code for successful creating employee 
+POST https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees
+{
+    "firstName": "New",
+    "lastName": "Employee2",
+    "dependants": 2
+}
+Current behavior: returns 200
+Expected behavior: returns 201 Created
+
+
+Issue: Returns 500 when GET employee with non valid uuid 
+GET  https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/invalidUUID
+Current behavior: returns 500
+Expected behavior: returns 404
+
+
+Issue: Returns 200 when GET employee not found with non existing employee    
+GET  https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/363b6895-0b1b-4ad9-9e5d-75c985d78bbb
+Current behavior: returns 200 and empty body
+Expected behavior: returns 404
+
+
+Issue: Incorrect http status code for updating invalid employee
+PUT  https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees
+{
+     "id": "42b7111c-a293-4fc2-85d2-invalidUUID",
+     "firstName": "John",
+     "lastName": "Employee edited"
+}
+Current behavior: returns 405
+Expected behavior: returns 404 with body including validation message (employee not found)
+
+
+Issue: Incorrect http status code for deleting employee (invalid employee)
+DELETE https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/{{invalidEmployeeId}}
+Current behavior: returns 405
+Expected behavior: returns 404 (alternatively with body including message employee not found)
+
+
+Issue: Incorrect http status code for delete 
+DELETE https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/api/employees/{{ID}}
+Current behavior: returns 200 (no body)
+Expected behavior: returns 204 No Content or alternatively 200 with body including message
+
+
+
+
+UI/Application bugs
+----------------------------------------------------------------------------------------------------
+
+Issue: Dashboard UI is accessible without authentication
+Description: Endpoints are protected but dashboard UI itself is not
+Severity: critical
+Steps to reproduce:
+Go to https://wmxrwq14uc.execute-api.us-east-1.amazonaws.com/Prod/Benefits
+Current behavior: UI dashboard is accessible (empty)
+Expected behavior: UI dashboard is not accessible without authentication
+
+
+Issue: Auth token is not refreshed and has short validity
+Description: User is not able to perform any action if inactive for 20+ minutes
+Severity: critical
+Steps to reproduce:
+Sign In
+Do not perform any action for 20+ minutes
+Reload page or perform any action
+Current behavior: Auth token expired. User can't see employee list (endpoint protected) but there is only empty UI.  
+Expected behavior: User is either still logged (token refreshed) until he/she signs out. Alternatively, user can be signed out but UI should redirect to Sign In page
+
+
+Issue: Dashboard Columns Last Name and First Name are swapped
+Severity: major
+Steps to reproduce:
+Sign in and observe Dashboard
+Current behavior: In column Last name is employee First name and in column First name is employee Last name  
+Expected behavior: In column Last name is employee Last name and in column First name is employee First name
+
+
+Issue: Currency is missing
+Severity: major
+Description: Money values such as Salary, Gross Pay, Net Pay has no currency sign. 
+Steps to reproduce:
+Sign in to dashboard and see any employee record in list
+Current behavior: No currency sign for money value
+Expected behavior: Each money value should includ a currency sign, in this case $. Alternatively, currency sign can be in table header 
+
+
+Issue: Wrong title for employee update dialog 
+Severity: low
+Steps to reproduce:
+Sign in and edit any employee record
+Current behavior: Dialog title is "Add Employee"
+Expected behavior: Dialog title is "Update Employee"
+
+
+Issue: Missing validation messages for Add Employee dialog
+Severity: major
+Steps to reproduce:
+Sign in 
+Go to Add Employee dialog
+Fill field Dependents: 60
+Save dialog
+Current behavior: User can't save dialog and there is no validation message
+Expected behavior: User is informed about maximum value via validation message on UI
+
+
+Issue: Default value for Dependents field in Add Employee dialog
+Severity: low
+Description: It's not clear what Dependents field is (count).
+Steps to reproduce:
+Sign in 
+Go to Add Employee dialog
+Current behavior: No default value, user has to fill 0 if there are no Dependents
+Note: ideally field should be HTML number value (increase/decrease) + possibility to fill it manually
+Expected behavior: Default value is 0, because this field is mandatory
+
+
+Issue: Dependents field label in Add Employee dialog should contain min and max value (to indicate there is max value)
+Severity: low
+Steps to reproduce:
+Sign in 
+Go to Add Employee dialog
+Current behavior: No default value, user has to fill 0 if there are no Dependents
+Note: ideally field should be <input type="number"> or alternative similar component in UI library
+Expected behavior: Default value is 0, because this field is mandatory (in API endpoint isn't)
+Note: First Name and Last Name fields should be marked as mandatory
+
+
+Issue: Add employee success/failure message
+Severity: medium
+Steps to reproduce:
+Sign in 
+Go to Add Employee dialog and add Employee details
+Current behavior: Employee is added but there is no message on UI about success. That could be an issue if there is failure (e.g. runtime error) or if employee list is big/paginated
+Expected behavior: Employee is added and there is clear message on UI about successful operation.
+
+
+Issue: Delete employee success/failure message
+Severity: medium
+Steps to reproduce:
+Sign in 
+Delete employee by invoking delete action and confirm.
+Current behavior: Employee is deleted but there is no message on UI about success. That could be an issue if there is failure (e.g. runtime error) or if employee list is big/paginated
+Expected behavior: Employee is deleted and there is clear message on UI about successful operation.
+
+Issue: UUID is used as ID colunn on Employee list
+Steps to reproduce:
+Sign in 
+Observe Id column in table
+Current behavior: UUID should be used to get employee details. There is no reason to display it as ID in list (makes list harder to read)
+Expected behavior: Id should be user friendly (shortened version or different identifier) 
+
+Issue: Employee list is not sorted by any field
+Steps to reproduce:
+Sign in 
+Observe order of employee records
+Current behavior: Employee list is not sorted by any column
+Expected behavior: Employee list is sorted by default column (e.g Last Name). There should be indication on table header
